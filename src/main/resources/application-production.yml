@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:postgres://dpg-cparb0m3e1ms739uf4u0-a/spring_project_hp6f
+    username: ${JDBC_DATABASE_PASSWORD}
+    password: ${JDBC_DATABASE_USERNAME}

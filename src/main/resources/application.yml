@@ -11,6 +11,8 @@ spring:
   output:
     ansi:
       enabled: always
+  profiles:
+    default: development
 
 server:
   port: 7070
