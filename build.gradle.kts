@@ -22,6 +22,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.mapstruct:mapstruct:1.5.5.Final")
     implementation("org.openapitools:jackson-databind-nullable:0.2.6")
+    implementation("org.postgresql:postgresql:42.7.2")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
     runtimeOnly("com.h2database:h2")
     testImplementation("net.datafaker:datafaker:2.0.1")
