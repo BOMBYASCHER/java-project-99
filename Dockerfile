@@ -1,10 +1,8 @@
-FROM gradle:8.5.0-jdk21
+FROM openjdk:21
 
-WORKDIR /app
+COPY . .
 
-COPY . /app
-
-RUN gradle --no-daemon build
+RUN ./gradlew --no-daemon build
 
 EXPOSE 7070
 
