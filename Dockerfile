@@ -1,10 +1,8 @@
-FROM openjdk:21
+FROM gradle:8.5.0-jdk21
 
 COPY . .
 
-ENV JAVA_OPTS "-Xmx512M -Xms512M"
-
-RUN ./gradlew --no-daemon build
+RUN gradle --no-daemon build
 
 EXPOSE 7070
 
