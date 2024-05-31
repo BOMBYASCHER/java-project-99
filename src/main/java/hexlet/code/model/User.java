@@ -7,14 +7,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.sql.Timestamp;
+import java.time.LocalDate;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -26,21 +26,19 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
     private String firstName;
 
-    @NotBlank
     private String lastName;
 
     @Email
     private String email;
 
-    @NotBlank
+    @Size(min = 3)
     private String password;
 
     @CreatedDate
-    private Timestamp createdAt;
+    private LocalDate createdAt;
 
     @LastModifiedDate
-    private Timestamp updatedAt;
+    private LocalDate updatedAt;
 }
