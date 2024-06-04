@@ -3,9 +3,9 @@ package hexlet.code.controller;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
-import hexlet.code.service.UserService;
 import hexlet.code.util.ModelGenerator;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -41,7 +42,7 @@ public class UserControllerTest {
     private UserRepository userRepository;
 
     @Autowired
-    private UserService userService;
+    private UserMapper userMapper;
 
     private User testUser;
 
@@ -52,7 +53,8 @@ public class UserControllerTest {
 
     @Test
     void testIndex() throws Exception {
-        var request = get("/users");
+        var request = get("/api/users")
+                .with(jwt());
         var response = mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andReturn()
@@ -64,7 +66,8 @@ public class UserControllerTest {
     @Test
     void testShow() throws Exception {
         userRepository.save(testUser);
-        var request = get("/users/" + testUser.getId());
+        var request = get("/api/users/" + testUser.getId())
+                .with(jwt());
         var response = mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andReturn()
@@ -77,9 +80,10 @@ public class UserControllerTest {
 
     @Test
     void testCreate() throws Exception {
-        var request = post("/users")
+        var request = post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(testUser));
+                .content(om.writeValueAsString(testUser))
+                .with(jwt());
         var response = mockMvc.perform(request)
                 .andExpect(status().isCreated())
                 .andReturn()
@@ -94,9 +98,10 @@ public class UserControllerTest {
     @Test
     void testCreateWithInvalidData() throws Exception {
         testUser.setEmail("invalidEmail");
-        var request = post("/users")
+        var request = post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(testUser));
+                .content(om.writeValueAsString(testUser))
+                .with(jwt());
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
     }
@@ -107,9 +112,10 @@ public class UserControllerTest {
         var testUserId = testUser.getId();
         var passwordBeforeUpdate = userRepository.findById(testUserId).get().getPassword();
         var update = Map.of("password", "newP4ssW0rd");
-        var request = put("/users/" + testUserId)
+        var request = put("/api/users/" + testUserId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(update));
+                .content(om.writeValueAsString(update))
+                .with(jwt());
         mockMvc.perform(request)
                 .andExpect(status().isOk());
         var user = userRepository.findById(testUserId).get();
@@ -123,9 +129,10 @@ public class UserControllerTest {
         var testUserId = testUser.getId();
         var passwordBeforeUpdate = userRepository.findById(testUserId).get().getPassword();
         var update = Map.of("password", "12");
-        var request = put("/users/" + testUserId)
+        var request = put("/api/users/" + testUserId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(update));
+                .content(om.writeValueAsString(update))
+                .with(jwt());
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
         var user = userRepository.findById(testUserId).get();
@@ -136,7 +143,8 @@ public class UserControllerTest {
     @Test
     void testDelete() throws Exception {
         userRepository.save(testUser);
-        var request = delete("/users/" + testUser.getId());
+        var request = delete("/api/users/" + testUser.getId())
+                .with(jwt());
         mockMvc.perform(request)
                 .andExpect(status().isOk());
         var user = userRepository.findById(testUser.getId());

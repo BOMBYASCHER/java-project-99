@@ -3,6 +3,7 @@ package hexlet.code.controller;
 import hexlet.code.dto.user.UserCreateDTO;
 import hexlet.code.dto.user.UserDTO;
 import hexlet.code.dto.user.UserUpdateDTO;
+import hexlet.code.exception.ResourceAlreadyExistsException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.service.UserService;
 import jakarta.validation.Valid;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -44,7 +45,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     UserDTO update(@Valid @RequestBody UserUpdateDTO updateDTO, @PathVariable Long id)
-            throws ResourceNotFoundException {
+            throws ResourceNotFoundException, ResourceAlreadyExistsException {
         return userService.update(id, updateDTO);
     }
 
