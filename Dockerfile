@@ -2,7 +2,7 @@ FROM gradle:8.5.0-jdk21
 
 COPY . .
 
-RUN gradle --no-daemon build
+RUN gradle --no-daemon bootJar
 
 EXPOSE 7070
 

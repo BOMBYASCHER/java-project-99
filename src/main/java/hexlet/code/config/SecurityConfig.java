@@ -3,6 +3,7 @@ package hexlet.code.config;
 import hexlet.code.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -29,16 +30,21 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
+    @Autowired
+    private WebSecurity webSecurity;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector)
             throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login").permitAll()
-                        .requestMatchers("/welcome").permitAll()
-                        .requestMatchers("/").permitAll()
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(registry -> registry
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}")
+                            .access(((auth, context) -> webSecurity.checkUserId(auth.get(), context)))
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/{id}")
+                            .access(((auth, context) -> webSecurity.checkUserId(auth.get(), context)))
+                        .anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer((rs) -> rs.jwt((jwt) -> jwt.decoder(jwtDecoder)))
                 .httpBasic(Customizer.withDefaults())
