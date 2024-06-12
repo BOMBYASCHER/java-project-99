@@ -33,9 +33,13 @@ public class UserService {
         return userMapper.map(user);
     }
 
-    public UserDTO create(UserCreateDTO userCreateDTO) {
+    public UserDTO create(UserCreateDTO userCreateDTO) throws ResourceAlreadyExistsException {
         var user = userMapper.map(userCreateDTO);
-        userRepository.save(user);
+        try {
+            userRepository.save(user);
+        } catch (Exception e) {
+            throw new ResourceAlreadyExistsException("User with email '" + user.getEmail() + "' already exists");
+        }
         return userMapper.map(user);
     }
 

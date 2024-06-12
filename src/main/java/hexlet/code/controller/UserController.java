@@ -9,6 +9,7 @@ import hexlet.code.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,8 +29,11 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    List<UserDTO> index() {
-        return userService.getAll();
+    ResponseEntity<List<UserDTO>> index() {
+        var users = userService.getAll();
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(users.size()))
+                .body(users);
     }
 
     @GetMapping("/{id}")
@@ -39,7 +43,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    UserDTO create(@Valid @RequestBody UserCreateDTO createDTO) {
+    UserDTO create(@Valid @RequestBody UserCreateDTO createDTO) throws ResourceAlreadyExistsException {
         return userService.create(createDTO);
     }
 
