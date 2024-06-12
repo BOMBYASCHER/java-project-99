@@ -1,27 +1,22 @@
 package hexlet.code.component;
 
-import hexlet.code.model.User;
-import hexlet.code.repository.UserRepository;
+import hexlet.code.dto.user.UserCreateDTO;
+import hexlet.code.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DataInitializer implements ApplicationRunner {
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private UserService userService;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        var admin = new User();
+        var admin = new UserCreateDTO();
         admin.setEmail("hexlet@example.com");
-        var encryptedPassword = passwordEncoder.encode("qwerty");
-        admin.setPassword(encryptedPassword);
-        userRepository.save(admin);
+        admin.setPassword("qwerty");
+        userService.create(admin);
     }
 }
