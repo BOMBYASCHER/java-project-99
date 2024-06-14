@@ -52,12 +52,12 @@ public class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        testUser = Instancio.of(modelGenerator.getUser()).create();
+        testUser = Instancio.of(modelGenerator.getUserModel()).create();
         testUserCreate = new UserCreateDTO();
         testUserCreate.setEmail(testUser.getEmail());
         testUserCreate.setPassword(testUser.getPassword());
 
-        anotherUser = Instancio.of(modelGenerator.getUser()).create();
+        anotherUser = Instancio.of(modelGenerator.getUserModel()).create();
         anotherUserCreate = new UserCreateDTO();
         anotherUserCreate.setEmail(anotherUser.getEmail());
         anotherUserCreate.setPassword(anotherUser.getPassword());
@@ -182,7 +182,7 @@ public class UserControllerTest {
         var request = delete("/api/users/" + testUser.getId())
                 .header("Authorization", token);
         mockMvc.perform(request)
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
         var user = userRepository.findById(testUser.getId());
         assertThat(user.isPresent()).isFalse();
     }

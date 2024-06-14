@@ -41,7 +41,7 @@ public class AuthenticationControllerTest {
 
     @BeforeEach
     void setup() {
-        testUser = Instancio.of(modelGenerator.getUser()).create();
+        testUser = Instancio.of(modelGenerator.getUserModel()).create();
     }
 
     @Test
