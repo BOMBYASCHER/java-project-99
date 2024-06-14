@@ -37,13 +37,15 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    UserDTO show(@PathVariable Long id) throws ResourceNotFoundException {
+    UserDTO show(@PathVariable Long id)
+            throws ResourceNotFoundException {
         return userService.get(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    UserDTO create(@Valid @RequestBody UserCreateDTO createDTO) throws ResourceAlreadyExistsException {
+    UserDTO create(@Valid @RequestBody UserCreateDTO createDTO)
+            throws ResourceAlreadyExistsException {
         return userService.create(createDTO);
     }
 
@@ -54,6 +56,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(@PathVariable Long id) {
         userService.delete(id);
     }
