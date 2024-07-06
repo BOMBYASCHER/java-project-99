@@ -7,7 +7,6 @@ import hexlet.code.dto.task.status.TaskStatusCreateDTO;
 import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskStatusRepository;
-import hexlet.code.service.TaskStatusService;
 import hexlet.code.util.ModelGenerator;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,9 +43,6 @@ public class TaskStatusControllerTest {
     private TaskStatusRepository taskStatusRepository;
 
     @Autowired
-    private TaskStatusService taskStatusService;
-
-    @Autowired
     private TaskStatusMapper taskStatusMapper;
 
     private TaskStatus taskStatus;
@@ -55,9 +51,7 @@ public class TaskStatusControllerTest {
     @BeforeEach
     void setUp() {
         taskStatus = Instancio.of(modelGenerator.getTaskStatusModel()).create();
-        taskStatusCreateDTO = new TaskStatusCreateDTO();
-        taskStatusCreateDTO.setName(taskStatus.getName());
-        taskStatusCreateDTO.setSlug(taskStatus.getSlug());
+        taskStatusCreateDTO = Instancio.of(modelGenerator.getTaskStatusCreateDTOModel()).create();
     }
 
     @Test

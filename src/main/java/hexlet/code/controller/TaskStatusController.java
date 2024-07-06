@@ -57,7 +57,8 @@ public class TaskStatusController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void delete(@PathVariable Long id) throws ResourceNotFoundException {
+    void delete(@PathVariable Long id)
+            throws ResourceNotFoundException, ResourceAlreadyExistsException {
         taskStatusService.deleteTaskStatus(id);
     }
 }

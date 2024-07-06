@@ -56,7 +56,13 @@ public class UserService {
         return userMapper.map(user);
     }
 
-    public void delete(Long userId) {
-        userRepository.deleteById(userId);
+    public void delete(Long userId) throws ResourceAlreadyExistsException {
+        try {
+            userRepository.deleteById(userId);
+        } catch (Exception e) {
+            throw new ResourceAlreadyExistsException(
+                    "Cannot delete a user with id " + userId + " because it is bind with another resource"
+            );
+        }
     }
 }

@@ -4,20 +4,20 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.dto.user.UserCreateDTO;
+import hexlet.code.dto.user.UserUpdateDTO;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
-import hexlet.code.service.UserService;
+import hexlet.code.util.AuthenticationUtil;
 import hexlet.code.util.ModelGenerator;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -43,49 +43,19 @@ public class UserControllerTest {
     private UserRepository userRepository;
 
     @Autowired
-    private UserService userService;
+    private AuthenticationUtil authenticationUtil;
 
     private User testUser;
     private User anotherUser;
     private UserCreateDTO testUserCreate;
-    private UserCreateDTO anotherUserCreate;
+    private UserUpdateDTO testUserUpdateDTO;
 
     @BeforeEach
     void setUp() {
         testUser = Instancio.of(modelGenerator.getUserModel()).create();
-        testUserCreate = new UserCreateDTO();
-        testUserCreate.setEmail(testUser.getEmail());
-        testUserCreate.setPassword(testUser.getPassword());
-
         anotherUser = Instancio.of(modelGenerator.getUserModel()).create();
-        anotherUserCreate = new UserCreateDTO();
-        anotherUserCreate.setEmail(anotherUser.getEmail());
-        anotherUserCreate.setPassword(anotherUser.getPassword());
-
-    }
-
-    private String createAndAuthenticate(User user) throws Exception {
-        var email = user.getEmail();
-        var password = user.getPassword();
-        var userCreateDTO = new UserCreateDTO();
-        userCreateDTO.setEmail(email);
-        userCreateDTO.setPassword(password);
-        userService.create(userCreateDTO);
-        var id = userRepository.findByEmail(email).get().getId();
-        user.setId(id);
-        var data = Map.of(
-                "username", user.getUsername(),
-                "password", password
-        );
-        var request = post("/api/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(data));
-        var token = mockMvc.perform(request)
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        return "Bearer " + token;
+        testUserCreate = Instancio.of(modelGenerator.getUserCreateDTOModel()).create();
+        testUserUpdateDTO = Instancio.of(modelGenerator.getUserUpdateDTOModel()).create();
     }
 
     @Test
@@ -119,24 +89,24 @@ public class UserControllerTest {
     void testCreate() throws Exception {
         var request = post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(testUser));
+                .content(om.writeValueAsString(testUserCreate));
         var response = mockMvc.perform(request)
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        var testUserId = om.readTree(response).get("id").asLong();
-        var user = userRepository.findById(testUserId).get();
+        var userId = om.readTree(response).get("id").asLong();
+        var user = userRepository.findById(userId).get();
         assertThat(user).isNotNull();
-        assertThat(user.getEmail()).isEqualTo(testUser.getEmail());
+        assertThat(user.getEmail()).isEqualTo(testUserCreate.getEmail());
     }
 
     @Test
     void testCreateWithInvalidData() throws Exception {
-        testUser.setEmail("invalidEmail");
+        testUserCreate.setEmail("invalidEmail");
         var request = post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(testUser))
+                .content(om.writeValueAsString(testUserCreate))
                 .with(jwt());
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
@@ -144,14 +114,14 @@ public class UserControllerTest {
 
     @Test
     void testUpdate() throws Exception {
-        var token = createAndAuthenticate(testUser);
+        userRepository.save(testUser);
+        var token = authenticationUtil.generateBearerToken(testUser);
         var testUserId = testUser.getId();
         var passwordBeforeUpdate = userRepository.findById(testUserId).get().getPassword();
-        var update = Map.of("password", "newP4ssW0rd");
         var request = put("/api/users/" + testUserId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(update))
-                .header("Authorization", token);
+                .content(om.writeValueAsString(testUserUpdateDTO))
+                .header(authenticationUtil.header(), token);
         mockMvc.perform(request)
                 .andExpect(status().isOk());
         var user = userRepository.findById(testUserId).get();
@@ -161,14 +131,15 @@ public class UserControllerTest {
 
     @Test
     void testUpdateWithInvalidData() throws Exception {
-        var token = createAndAuthenticate(testUser);
+        userRepository.save(testUser);
+        var token = authenticationUtil.generateBearerToken(testUser);
         var testUserId = testUser.getId();
         var passwordBeforeUpdate = userRepository.findById(testUserId).get().getPassword();
-        var update = Map.of("password", "12");
+        testUserUpdateDTO.setPassword(JsonNullable.of("12"));
         var request = put("/api/users/" + testUserId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(update))
-                .header("Authorization", token);
+                .content(om.writeValueAsString(testUserUpdateDTO))
+                .header(authenticationUtil.header(), token);
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
         var user = userRepository.findById(testUserId).get();
@@ -178,9 +149,10 @@ public class UserControllerTest {
 
     @Test
     void testDelete() throws Exception {
-        var token = createAndAuthenticate(testUser);
+        userRepository.save(testUser);
+        var token = authenticationUtil.generateBearerToken(testUser);
         var request = delete("/api/users/" + testUser.getId())
-                .header("Authorization", token);
+                .header(authenticationUtil.header(), token);
         mockMvc.perform(request)
                 .andExpect(status().isNoContent());
         var user = userRepository.findById(testUser.getId());
@@ -190,15 +162,15 @@ public class UserControllerTest {
     @Test
     void testUpdatingForeignUserData() throws Exception {
         userRepository.save(testUser);
-        var anotherUserResponseToken = createAndAuthenticate(anotherUser);
+        userRepository.save(anotherUser);
+        var anotherUserResponseToken = authenticationUtil.generateBearerToken(anotherUser);
         var savedTestUser = userRepository.findByEmail(testUser.getEmail()).get();
         var passwordBeforeAttack = savedTestUser.getPassword();
         var testUserId = savedTestUser.getId();
-        var update = Map.of("password", "newP4ssW0rd");
         var request = put("/api/users/" + testUserId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(update))
-                .header("Authorization", anotherUserResponseToken);
+                .content(om.writeValueAsString(testUserUpdateDTO))
+                .header(authenticationUtil.header(), anotherUserResponseToken);
         mockMvc.perform(request)
                 .andExpect(status().isForbidden());
         var testUserAfterAttack = userRepository.findById(testUserId).get();

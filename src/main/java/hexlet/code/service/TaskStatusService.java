@@ -27,13 +27,15 @@ public class TaskStatusService {
                 .toList();
     }
 
-    public TaskStatusDTO getTaskStatus(Long taskStatusId) throws ResourceNotFoundException {
+    public TaskStatusDTO getTaskStatus(Long taskStatusId)
+            throws ResourceNotFoundException {
         var taskStatus = taskStatusRepository.findById(taskStatusId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task status with id " + taskStatusId + " not found"));
         return taskStatusMapper.map(taskStatus);
     }
 
-    public TaskStatusDTO createTaskStatus(TaskStatusCreateDTO statusCreateDTO) throws ResourceAlreadyExistsException {
+    public TaskStatusDTO createTaskStatus(TaskStatusCreateDTO statusCreateDTO)
+            throws ResourceAlreadyExistsException {
         var taskStatus = taskStatusMapper.map(statusCreateDTO);
         try {
             taskStatusRepository.save(taskStatus);
@@ -56,9 +58,16 @@ public class TaskStatusService {
         return taskStatusMapper.map(taskStatus);
     }
 
-    public void deleteTaskStatus(Long taskStatusId) throws ResourceNotFoundException {
+    public void deleteTaskStatus(Long taskStatusId)
+            throws ResourceNotFoundException, ResourceAlreadyExistsException {
         var taskStatus = taskStatusRepository.findById(taskStatusId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task status with id " + taskStatusId + " not found"));
-        taskStatusRepository.delete(taskStatus);
+        try {
+            taskStatusRepository.delete(taskStatus);
+        } catch (Exception e) {
+            throw new ResourceAlreadyExistsException(
+                    "Cannot delete a task status with id " + taskStatusId + " because it is bind with another resource"
+            );
+        }
     }
 }
