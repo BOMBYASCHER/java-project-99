@@ -1,7 +1,9 @@
 package hexlet.code.component;
 
+import hexlet.code.dto.label.LabelCreateDTO;
 import hexlet.code.dto.task.status.TaskStatusCreateDTO;
 import hexlet.code.dto.user.UserCreateDTO;
+import hexlet.code.service.LabelService;
 import hexlet.code.service.TaskStatusService;
 import hexlet.code.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +21,14 @@ public class DataInitializer implements ApplicationRunner {
     @Autowired
     private TaskStatusService taskStatusService;
 
+    @Autowired
+    private LabelService labelService;
+
     @Override
     public void run(ApplicationArguments args) {
         initAdmin();
         initTaskStatuses();
+        initLabels();
     }
 
     private void initAdmin() {
@@ -74,6 +80,23 @@ public class DataInitializer implements ApplicationRunner {
             taskStatusPublished.setName("published");
             taskStatusPublished.setSlug("published");
             taskStatusService.createTaskStatus(taskStatusPublished);
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
+    }
+
+    private void initLabels() {
+        try {
+            var label = new LabelCreateDTO();
+            label.setName("feature");
+            labelService.createLabel(label);
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
+        try {
+            var label = new LabelCreateDTO();
+            label.setName("bug");
+            labelService.createLabel(label);
         } catch (Exception e) {
             log.warn(e.getMessage());
         }

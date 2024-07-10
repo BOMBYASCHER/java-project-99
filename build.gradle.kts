@@ -24,6 +24,7 @@ dependencies {
     implementation("org.openapitools:jackson-databind-nullable:0.2.6")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2")

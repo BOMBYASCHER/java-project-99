@@ -4,13 +4,13 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.dto.task.TaskCreateDTO;
+import hexlet.code.dto.task.TaskUpdateDTO;
 import hexlet.code.mapper.TaskMapper;
 import hexlet.code.model.Task;
 import hexlet.code.model.User;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
-import hexlet.code.service.TaskService;
 import hexlet.code.util.AuthenticationUtil;
 import hexlet.code.util.ModelGenerator;
 import org.instancio.Instancio;
@@ -23,7 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Map;
+import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -49,9 +49,6 @@ public class TaskControllerTest {
     private TaskRepository taskRepository;
 
     @Autowired
-    private TaskService taskService;
-
-    @Autowired
     private TaskStatusRepository taskStatusRepository;
 
     @Autowired
@@ -66,12 +63,14 @@ public class TaskControllerTest {
     private Task task;
     private User anotherUser;
     private TaskCreateDTO taskCreateDTO;
+    private TaskUpdateDTO taskUpdateDTO;
 
     @BeforeEach
     void setUp() {
         task = Instancio.of(modelGenerator.getTaskModel()).create();
         anotherUser = Instancio.of(modelGenerator.getUserModel()).create();
         taskCreateDTO = Instancio.of(modelGenerator.getTaskCreateDTOModel()).create();
+        taskUpdateDTO = Instancio.of(modelGenerator.getTaskUpdateDTOModel()).create();
         var status = Instancio.of(modelGenerator.getTaskStatusModel()).create();
         var user = Instancio.of(modelGenerator.getUserModel()).create();
         userRepository.save(user);
@@ -116,20 +115,25 @@ public class TaskControllerTest {
 
     @Test
     void testCreate() throws Exception {
+        taskCreateDTO.setTaskLabelIds(JsonNullable.of(Set.of(1L, 2L)));
         var content = om.writeValueAsString(taskCreateDTO);
         var request = post("/api/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(content)
                 .with(jwt());
-        System.out.println(content);
         var response = mockMvc.perform(request)
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
         assertThatJson(response).isNotNull().and(
-                assertion -> assertion.node("assignee_id").isEqualTo(task.getAssignee().getId())
+                assertion -> assertion.node("assignee_id").isEqualTo(task.getAssignee().getId()),
+                assertion -> assertion.node("taskLabelIds").isArray().contains(1L, 2L)
         );
+        var taskId = om.readTree(response).get("id").asLong();
+        var labelsOfSavedTask = taskRepository.findById(taskId).get().getLabels();
+        var labelsIds = labelsOfSavedTask.stream().map(l -> l.getId());
+        assertThat(labelsIds).contains(1L, 2L);
     }
 
     @Test
@@ -150,10 +154,11 @@ public class TaskControllerTest {
     @Test
     void testUpdate() throws Exception {
         taskRepository.save(task);
-        var update = Map.of("assignee_id", anotherUser.getId());
+        taskUpdateDTO.setTaskLabelIds(JsonNullable.of(Set.of(1L, 2L)));
+        taskUpdateDTO.setAssignee_id(JsonNullable.of(anotherUser.getId()));
         var request = put("/api/tasks/" + task.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(update))
+                .content(om.writeValueAsString(taskUpdateDTO))
                 .with(jwt());
         var response = mockMvc.perform(request)
                 .andExpect(status().isOk())
@@ -162,18 +167,22 @@ public class TaskControllerTest {
                 .getContentAsString();
         var taskFromRepository = taskRepository.findById(task.getId()).get();
         assertThat(taskFromRepository.getAssignee().getId()).isEqualTo(anotherUser.getId());
+        var labelsOfSavedTask = taskRepository.findById(task.getId()).get().getLabels();
+        var labelsIds = labelsOfSavedTask.stream().map(l -> l.getId());
+        assertThat(labelsIds).contains(1L, 2L);
         assertThatJson(response).isNotNull().and(
-                assertion -> assertion.node("assignee_id").isEqualTo(anotherUser.getId())
+                assertion -> assertion.node("assignee_id").isEqualTo(anotherUser.getId()),
+                assertion -> assertion.node("taskLabelIds").isArray().contains(1L, 2L)
         );
     }
 
     @Test
     void testUpdateWithNoExistingAssignee() throws Exception {
         taskRepository.save(task);
-        var update = Map.of("assignee_id", 9000L);
+        taskUpdateDTO.setAssignee_id(JsonNullable.of(9000L));
         var request = put("/api/tasks/" + task.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(update))
+                .content(om.writeValueAsString(taskUpdateDTO))
                 .with(jwt());
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest())

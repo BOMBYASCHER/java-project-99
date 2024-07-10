@@ -1,11 +1,14 @@
 package hexlet.code.util;
 
+import hexlet.code.dto.label.LabelCreateDTO;
+import hexlet.code.dto.label.LabelUpdateDTO;
 import hexlet.code.dto.task.TaskCreateDTO;
 import hexlet.code.dto.task.TaskUpdateDTO;
 import hexlet.code.dto.task.status.TaskStatusCreateDTO;
 import hexlet.code.dto.task.status.TaskStatusUpdateDTO;
 import hexlet.code.dto.user.UserCreateDTO;
 import hexlet.code.dto.user.UserUpdateDTO;
+import hexlet.code.model.Label;
 import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
@@ -16,15 +19,11 @@ import org.instancio.Instancio;
 import org.instancio.Model;
 import org.instancio.Select;
 import org.openapitools.jackson.nullable.JsonNullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Getter
 @Component
 public class ModelGenerator {
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     private final Faker faker = new Faker();
 
@@ -37,6 +36,9 @@ public class ModelGenerator {
     private Model<TaskUpdateDTO> taskUpdateDTOModel;
     private Model<TaskStatusCreateDTO> taskStatusCreateDTOModel;
     private Model<TaskStatusUpdateDTO> taskStatusUpdateDTOModel;
+    private Model<Label> labelModel;
+    private Model<LabelCreateDTO> labelCreateDTOModel;
+    private Model<LabelUpdateDTO> labelUpdateDTOModel;
 
     @PostConstruct
     private void init() {
@@ -78,6 +80,7 @@ public class ModelGenerator {
                 .ignore(Select.field(Task::getId))
                 .ignore(Select.field(Task::getAssignee))
                 .ignore(Select.field(Task::getStatus))
+                .ignore(Select.field(Task::getLabels))
                 .supply(Select.field(Task::getTitle),
                         () -> faker.lorem().word() + '_' + faker.lorem().word() + '_' + faker.lorem().word())
                 .supply(Select.field(Task::getContent), () -> faker.lorem().paragraph(4))
@@ -86,6 +89,7 @@ public class ModelGenerator {
         taskCreateDTOModel = Instancio.of(TaskCreateDTO.class)
                 .ignore(Select.field(TaskCreateDTO::getAssignee_id))
                 .ignore(Select.field(TaskCreateDTO::getStatus))
+                .ignore(Select.field(TaskCreateDTO::getTaskLabelIds))
                 .supply(Select.field(TaskCreateDTO::getTitle),
                         () -> faker.lorem().word() + '_' + faker.lorem().word() + '_' + faker.lorem().word())
                 .supply(Select.field(TaskCreateDTO::getContent),
@@ -93,16 +97,29 @@ public class ModelGenerator {
                 .supply(Select.field(TaskCreateDTO::getIndex),
                         () -> JsonNullable.of(faker.number().numberBetween(1200L, 2000L)))
                 .toModel();
-
         taskUpdateDTOModel = Instancio.of(TaskUpdateDTO.class)
                 .ignore(Select.field(TaskUpdateDTO::getAssignee_id))
                 .ignore(Select.field(TaskUpdateDTO::getStatus))
+                .ignore(Select.field(TaskUpdateDTO::getTaskLabelIds))
                 .supply(Select.field(TaskUpdateDTO::getTitle),
-                        () -> faker.lorem().word() + '_' + faker.lorem().word() + '_' + faker.lorem().word())
+                        () -> JsonNullable.of(
+                                faker.lorem().word() + '_' + faker.lorem().word() + '_' + faker.lorem().word()
+                        ))
                 .supply(Select.field(TaskUpdateDTO::getContent),
                         () -> JsonNullable.of(faker.lorem().paragraph(4)))
                 .supply(Select.field(TaskUpdateDTO::getIndex),
                         () -> JsonNullable.of(faker.number().numberBetween(1200L, 2000L)))
+                .toModel();
+        labelModel = Instancio.of(Label.class)
+                .ignore(Select.field(Label::getId))
+                .ignore(Select.field(Label::getTasks))
+                .supply(Select.field(Label::getName), () -> faker.text().text(3, 1000))
+                .toModel();
+        labelCreateDTOModel = Instancio.of(LabelCreateDTO.class)
+                .supply(Select.field(LabelCreateDTO::getName), () -> faker.text().text(3, 1000))
+                .toModel();
+        labelUpdateDTOModel = Instancio.of(LabelUpdateDTO.class)
+                .supply(Select.field(LabelUpdateDTO::getName), () -> faker.text().text(3, 1000))
                 .toModel();
     }
 }
