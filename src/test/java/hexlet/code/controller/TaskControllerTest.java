@@ -8,6 +8,7 @@ import hexlet.code.dto.task.TaskUpdateDTO;
 import hexlet.code.mapper.TaskMapper;
 import hexlet.code.model.Task;
 import hexlet.code.model.User;
+import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
@@ -60,6 +61,9 @@ public class TaskControllerTest {
     @Autowired
     private AuthenticationUtil authentication;
 
+    @Autowired
+    private LabelRepository labelRepository;
+
     private Task task;
     private User anotherUser;
     private TaskCreateDTO taskCreateDTO;
@@ -96,6 +100,87 @@ public class TaskControllerTest {
                 .getResponse()
                 .getContentAsString();
         assertThatJson(response).isEqualTo(om.writeValueAsString(tasks));
+    }
+
+    @Test
+    void testIndexWithParams() throws Exception {
+        var assignee = userRepository.findById(1L).get();
+        var toBeFixed = taskStatusRepository.findBySlug("to_be_fixed").get();
+        var draft = taskStatusRepository.findBySlug("draft").get();
+        var label = labelRepository.findById(1L).get();
+        var task1 = Instancio.of(modelGenerator.getTaskModel()).create();
+        task1.setStatus(toBeFixed);
+        task1.setAssignee(assignee);
+        task1.addLabel(label);
+        task1.setTitle("create application");
+        taskRepository.save(task1);
+        var task2 = Instancio.of(modelGenerator.getTaskModel()).create();
+        task2.setTitle("create");
+        task2.setStatus(draft);
+        taskRepository.save(task2);
+        var task3 = Instancio.of(modelGenerator.getTaskModel()).create();
+        task3.setAssignee(assignee);
+        task3.setStatus(draft);
+        taskRepository.save(task3);
+        var task4 = Instancio.of(modelGenerator.getTaskModel()).create();
+        task4.setStatus(toBeFixed);
+        taskRepository.save(task4);
+        var task5 = Instancio.of(modelGenerator.getTaskModel()).create();
+        task5.addLabel(label);
+        task5.setStatus(draft);
+        taskRepository.save(task5);
+        var requestAllParams = get("/api/tasks?titleCont=create&assigneeId=1&status=to_be_fixed&labelId=1")
+                .with(jwt());
+        var responseAllParams = mockMvc.perform(requestAllParams)
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertThatJson(responseAllParams).isArray().contains(om.writeValueAsString(taskMapper.map(task1)));
+        var requestTitleContParam = get("/api/tasks?titleCont=create")
+                .with(jwt());
+        var responseTitleContParam = mockMvc.perform(requestTitleContParam)
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertThatJson(responseTitleContParam).isArray().contains(
+                om.writeValueAsString(taskMapper.map(task1)),
+                om.writeValueAsString(taskMapper.map(task2))
+        );
+        var requestAssigneeIdParam = get("/api/tasks?assigneeId=1")
+                .with(jwt());
+        var responseAssigneeIdParam = mockMvc.perform(requestAssigneeIdParam)
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertThatJson(responseAssigneeIdParam).isArray().contains(
+                om.writeValueAsString(taskMapper.map(task1)),
+                om.writeValueAsString(taskMapper.map(task3))
+        );
+        var requestStatusParam = get("/api/tasks?status=to_be_fixed")
+                .with(jwt());
+        var responseStatusParam = mockMvc.perform(requestStatusParam)
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertThatJson(responseStatusParam).isArray().contains(
+                om.writeValueAsString(taskMapper.map(task1)),
+                om.writeValueAsString(taskMapper.map(task4))
+        );
+        var requestLabelParam = get("/api/tasks?labelId=1")
+                .with(jwt());
+        var responseLabelParam = mockMvc.perform(requestLabelParam)
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertThatJson(responseLabelParam).isArray().contains(
+                om.writeValueAsString(taskMapper.map(task1)),
+                om.writeValueAsString(taskMapper.map(task5))
+        );
     }
 
     @Test
