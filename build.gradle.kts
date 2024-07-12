@@ -5,7 +5,6 @@ plugins {
     id("org.springframework.boot") version "3.2.2"
     id("io.spring.dependency-management") version "1.1.3"
     id("io.freefair.lombok") version "8.6"
-    id("io.sentry.jvm.gradle") version "4.9.0"
 }
 
 group = "hexlet.code"
@@ -26,6 +25,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("io.sentry:sentry-spring-boot-starter-jakarta:7.11.0")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2")
@@ -37,13 +37,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
-}
-
-sentry {
-    includeSourceContext = true
-    org = "bombyascher"
-    projectName = "task-manager"
-    authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }
 
 tasks.jacocoTestReport {
