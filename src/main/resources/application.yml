@@ -1,8 +1,6 @@
 logging:
   level:
     root: INFO
-sentry:
-  dsn: ${SENTRY_DSN}
 spring:
   jpa:
     generate-ddl: true

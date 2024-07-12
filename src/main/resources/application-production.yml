@@ -6,3 +6,5 @@ spring:
 rsa:
   private-key: file:/etc/secrets/private.pem
   public-key: file:/etc/secrets/public.pem
+sentry:
+  dsn: ${SENTRY_DSN}
