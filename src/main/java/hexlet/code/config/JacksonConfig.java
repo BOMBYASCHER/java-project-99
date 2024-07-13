@@ -15,7 +15,7 @@ public class JacksonConfig {
     Jackson2ObjectMapperBuilder mapperBuilder() {
         var builder = new Jackson2ObjectMapperBuilder();
         builder.serializationInclusion(JsonInclude.Include.NON_NULL)
-                .serializers(new LocalDateSerializer(DateTimeFormatter.ofPattern("dd-MM-yyyy")))
+                .serializers(new LocalDateSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
                 .modulesToInstall(new JsonNullableModule());
         return builder;
     }
