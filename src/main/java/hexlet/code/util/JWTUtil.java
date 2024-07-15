@@ -15,12 +15,23 @@ public class JWTUtil {
     @Autowired
     private JwtEncoder jwtEncoder;
 
-    public Jwt generateToken(String username, Long id) {
+//    public Jwt generateToken(String username, Long id) {
+//        Instant createdTime = Instant.now();
+//        JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
+//                .issuedAt(createdTime)
+//                .issuer("self")
+//                .claim("userId", id)
+//                .expiresAt(createdTime.plus(30, ChronoUnit.MINUTES))
+//                .subject(username)
+//                .build();
+//        return jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet));
+//    }
+
+    public Jwt generateToken(String username) {
         Instant createdTime = Instant.now();
         JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
                 .issuedAt(createdTime)
                 .issuer("self")
-                .claim("userId", id)
                 .expiresAt(createdTime.plus(30, ChronoUnit.MINUTES))
                 .subject(username)
                 .build();

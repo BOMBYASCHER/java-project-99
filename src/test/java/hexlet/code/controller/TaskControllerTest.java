@@ -82,7 +82,7 @@ public class TaskControllerTest {
         taskStatusRepository.save(status);
         task.setAssignee(user);
         task.setStatus(status);
-        taskCreateDTO.setStatus(status.getName());
+        taskCreateDTO.setStatus(status.getSlug());
         taskCreateDTO.setAssignee_id(JsonNullable.of(user.getId()));
     }
 
@@ -234,6 +234,23 @@ public class TaskControllerTest {
                 .getResponse()
                 .getContentAsString();
         assertThatJson(response).asString().isEmpty();
+    }
+
+    @Test
+    void testCreateWithoutAssignee() throws Exception {
+        taskCreateDTO.setAssignee_id(JsonNullable.of(null));
+        var request = post("/api/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(om.writeValueAsString(taskCreateDTO))
+                .with(jwt());
+        var response = mockMvc.perform(request)
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        assertThatJson(response).and(
+                assertion -> assertion.node("assignee_id").isAbsent()
+        );
     }
 
     @Test

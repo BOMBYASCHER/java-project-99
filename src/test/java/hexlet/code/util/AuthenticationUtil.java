@@ -23,15 +23,17 @@ public class AuthenticationUtil {
     private UserRepository userRepository;
 
     public String generateBearerToken(User user) {
-        var userId = user.getId();
-        var username = user.getUsername();
-        var password = user.getPassword();
-        var userFromRepository = userRepository.findById(userId).get();
-        userFromRepository.setPassword(passwordEncoder.encode(password));
+        Long userId = user.getId();
+        String username = user.getUsername();
+        String password = user.getPassword();
+        User userFromRepository = userRepository.findById(userId).get();
+        String encodedPassword = passwordEncoder.encode(password);
+        userFromRepository.setPassword(encodedPassword);
         userRepository.save(userFromRepository);
+        user.setPassword(encodedPassword);
         var usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(username, password);
         authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-        return "Bearer " + jwtUtil.generateToken(username, userId).getTokenValue();
+        return "Bearer " + jwtUtil.generateToken(username).getTokenValue();
     }
     public String header() {
         return "Authorization";

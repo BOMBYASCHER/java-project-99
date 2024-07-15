@@ -47,12 +47,12 @@ public class UserService {
             throws ResourceNotFoundException, ResourceAlreadyExistsException {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + "not found."));
-        try {
+//        try {
             userMapper.update(userUpdateDTO, user);
             userRepository.save(user);
-        } catch (Exception e) {
-            throw new ResourceAlreadyExistsException("User with email '" + user.getEmail() + "' already exists");
-        }
+//        } catch (Exception e) {
+//            throw new ResourceAlreadyExistsException("User with email '" + user.getEmail() + "' already exists");
+//        }
         return userMapper.map(user);
     }
 

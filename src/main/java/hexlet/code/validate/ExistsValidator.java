@@ -13,6 +13,9 @@ public class ExistsValidator {
 
         @Override
         public boolean isValid(Long field, ConstraintValidatorContext constraintValidatorContext) {
+            if (field == null) {
+                return true;
+            }
             return userRepository.existsById(field);
         }
     }
@@ -23,7 +26,7 @@ public class ExistsValidator {
 
         @Override
         public boolean isValid(String field, ConstraintValidatorContext constraintValidatorContext) {
-            return taskStatusRepository.existsByName(field);
+            return taskStatusRepository.existsBySlug(field);
         }
     }
 }

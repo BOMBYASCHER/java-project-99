@@ -29,8 +29,7 @@ public class AuthenticationController {
         var password = authenticationDTO.getPassword();
         var authentication = new UsernamePasswordAuthenticationToken(email, password);
         authenticationManager.authenticate(authentication);
-        var id = userRepository.findByEmail(email).get().getId();
-        var jwt = jwtUtil.generateToken(email, id);
+        var jwt = jwtUtil.generateToken(email);
         return jwt.getTokenValue();
     }
 }

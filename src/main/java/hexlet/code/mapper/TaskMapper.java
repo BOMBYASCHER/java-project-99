@@ -37,7 +37,7 @@ public abstract class TaskMapper {
     public abstract Task map(TaskCreateDTO taskCreateDTO) throws ResourceNotFoundException;
 
     @Mapping(source = "assignee.id", target = "assignee_id")
-    @Mapping(source = "status.name", target = "status")
+    @Mapping(source = "status.slug", target = "status")
     @Mapping(target = "taskLabelIds", source = "labels", qualifiedByName = "LabelsIds")
     public abstract TaskDTO map(Task task);
 
@@ -47,8 +47,8 @@ public abstract class TaskMapper {
 
     @Named("EntityStatus")
     public TaskStatus fromStatusToEntityStatus(String status) throws ResourceNotFoundException {
-        return taskStatusRepository.findByName(status)
-                .orElseThrow(() -> new ResourceNotFoundException("Task status with name '" + status + "' not found"));
+        return taskStatusRepository.findBySlug(status)
+                .orElseThrow(() -> new ResourceNotFoundException("Task status with slug '" + status + "' not found"));
     }
 
     @Named("TaskLabels")

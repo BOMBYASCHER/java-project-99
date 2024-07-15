@@ -31,7 +31,7 @@ public class TaskStatus implements BaseModel {
     private String name;
 
     @Size(min = 1)
-    @Pattern(regexp = "^[a-z0-9]+(?:([-_])[a-z0-9]+)*$")
+    @Pattern(regexp = "^\\w+(?:([-_])[a-z0-9]+)*$")
     @Column(unique = true)
     private String slug;
 

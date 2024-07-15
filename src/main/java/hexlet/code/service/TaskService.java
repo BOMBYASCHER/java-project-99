@@ -1,5 +1,7 @@
 package hexlet.code.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.dto.task.TaskCreateDTO;
 import hexlet.code.dto.task.TaskDTO;
 import hexlet.code.dto.task.TaskParamsDTO;
@@ -29,6 +31,9 @@ public class TaskService {
 
     @Autowired
     private TaskSpecification taskSpecification;
+
+    @Autowired
+    private ObjectMapper om;
 
     public List<TaskDTO> getAllTasks(TaskParamsDTO taskParamsDTO) {
         var spec = taskSpecification.build(taskParamsDTO);
@@ -61,8 +66,16 @@ public class TaskService {
             throws ResourceNotFoundException, ResourceAlreadyExistsException {
         var task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task with id " + taskId + " not found"));
+        System.out.println("TASK BEFORE UPDATE");
+        try {
+            System.out.println(om.writeValueAsString(taskMapper.map(task)));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         try {
             taskMapper.update(taskUpdateDTO, task);
+            System.out.println("TASK AFTER UPDATE");
+            System.out.println(om.writeValueAsString(taskMapper.map(task)));
             taskRepository.save(task);
         } catch (Exception e) {
             throw new ResourceAlreadyExistsException(e.getMessage());

@@ -130,6 +130,42 @@ public class UserControllerTest {
     }
 
     @Test
+    void testPartialUpdate() throws Exception {
+        userRepository.save(testUser);
+        var token = authenticationUtil.generateBearerToken(testUser);
+        var testUserId = testUser.getId();
+        var update = new UserUpdateDTO();
+        update.setFirstName(testUserUpdateDTO.getFirstName());
+        var request = put("/api/users/" + testUserId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(om.writeValueAsString(update))
+                .header(authenticationUtil.header(), token);
+        mockMvc.perform(request)
+                .andExpect(status().isOk());
+        var user = userRepository.findById(testUserId).get();
+        assertThat(user).isNotNull();
+        assertThat(user.getFirstName()).isEqualTo(update.getFirstName().get());
+    }
+
+    @Test
+    void testPartialUpdateWithInvalidData() throws Exception {
+        userRepository.save(testUser);
+        var token = authenticationUtil.generateBearerToken(testUser);
+        var testUserId = testUser.getId();
+        var update = new UserUpdateDTO();
+        update.setPassword(null);
+        var request = put("/api/users/" + testUserId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(om.writeValueAsString(update))
+                .header(authenticationUtil.header(), token);
+        mockMvc.perform(request)
+                .andExpect(status().isOk());
+        var user = userRepository.findById(testUserId).get();
+        assertThat(user).isNotNull();
+        assertThat(user.getPassword()).isEqualTo(testUser.getPassword());
+    }
+
+    @Test
     void testUpdateWithInvalidData() throws Exception {
         userRepository.save(testUser);
         var token = authenticationUtil.generateBearerToken(testUser);
